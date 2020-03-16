@@ -96,7 +96,7 @@ const uploadDir = async (s3, bucketName, dirPath, cacheControl, options) => {
       Bucket: bucketName,
       Key: key,
       Body: fs.readFileSync(item.path),
-      ContentEncoding: contentEncoding(filePath) || 'identity',
+      ContentEncoding: contentEncoding(item.path) || 'identity',
       ContentType: mime.lookup(path.basename(item.path)) || 'application/octet-stream',
       CacheControl: cacheControl,
     }

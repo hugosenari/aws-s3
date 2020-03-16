@@ -141,6 +141,13 @@ const packAndUploadDir = async ({ s3, bucketName, dirPath, key, append = [], cac
   })
 }
 
+const contentEncoding = filePath => {
+  const fileBuffer = Buffer.alloc(3)
+  fs.readSync(fs.openSync(filePath), fileBuffer, 0, 3, 0)
+  const zipBuffer = Buffer.from([0x1F, 0x8B, 0x08])
+  if (!zipBuffer.compare(fileBuffer)) return 'gzip'
+};
+
 const uploadFile = async ({ s3, bucketName, filePath, key, cacheControl }) => {
   return new Promise((resolve, reject) => {
     fs.createReadStream(filePath)
@@ -148,6 +155,7 @@ const uploadFile = async ({ s3, bucketName, filePath, key, cacheControl }) => {
         UploadStream(s3, {
           Bucket: bucketName,
           Key: key,
+          ContentEncoding: contentEncoding(filePath) || 'identity',
           ContentType: mime.lookup(filePath) || 'application/octet-stream',
           CacheControl: cacheControl,
         })

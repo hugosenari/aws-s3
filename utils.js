@@ -59,6 +59,13 @@ const ensureBucket = async (s3, name, debug) => {
   }
 }
 
+const contentEncoding = filePath => {
+  const fileBuffer = Buffer.alloc(3)
+  fs.readSync(fs.openSync(filePath), fileBuffer, 0, 3, 0)
+  const zipBuffer = Buffer.from([0x1F, 0x8B, 0x08])
+  if (!zipBuffer.compare(fileBuffer)) return 'gzip'
+};
+
 const uploadDir = async (s3, bucketName, dirPath, cacheControl, options) => {
   const items = await new Promise((resolve, reject) => {
     try {
@@ -89,6 +96,7 @@ const uploadDir = async (s3, bucketName, dirPath, cacheControl, options) => {
       Bucket: bucketName,
       Key: key,
       Body: fs.readFileSync(item.path),
+      ContentEncoding: contentEncoding(filePath) || 'identity',
       ContentType: mime.lookup(path.basename(item.path)) || 'application/octet-stream',
       CacheControl: cacheControl,
     }
@@ -140,13 +148,6 @@ const packAndUploadDir = async ({ s3, bucketName, dirPath, key, append = [], cac
     archive.finalize()
   })
 }
-
-const contentEncoding = filePath => {
-  const fileBuffer = Buffer.alloc(3)
-  fs.readSync(fs.openSync(filePath), fileBuffer, 0, 3, 0)
-  const zipBuffer = Buffer.from([0x1F, 0x8B, 0x08])
-  if (!zipBuffer.compare(fileBuffer)) return 'gzip'
-};
 
 const uploadFile = async ({ s3, bucketName, filePath, key, cacheControl }) => {
   return new Promise((resolve, reject) => {

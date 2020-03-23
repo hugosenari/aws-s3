@@ -61,7 +61,7 @@ const ensureBucket = async (s3, name, debug) => {
 
 const contentEncoding = filePath => {
   const fileBuffer = Buffer.alloc(3)
-  fs.readSync(fs.openSync(filePath), fileBuffer, 0, 3, 0)
+  fs.readSync(fs.openSync(filePath, 'r'), fileBuffer, 0, 3, 0)
   const zipBuffer = Buffer.from([0x1F, 0x8B, 0x08])
   if (!zipBuffer.compare(fileBuffer)) return 'gzip'
 };
